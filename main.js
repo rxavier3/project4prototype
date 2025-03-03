@@ -83,7 +83,7 @@ function createBloodLossHistogram(parentDiv, data, estimatedBloodLoss) {
 
     // Define scales
     const xScale = d3.scaleLinear()
-        .domain([0, maxBloodLoss])
+        .domain([0, 1500])
         .range([margin.left, width - margin.right]);
 
     const yScale = d3.scaleLinear()
