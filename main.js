@@ -1,27 +1,58 @@
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm";
+import { updateAnimation } from "./animation.js";
 
-// Create form container
-const formContainer = d3.select("body").append("div").attr("class", "form-container");
-const form = formContainer.append("form");
+// ** Create a CLEARLY DISTINCT Section for Blood Loss Prediction Sliders **
+const predictionSliderContainer = d3.select("body")
+    .append("div")
+    .attr("class", "prediction-slider-container")
+    .style("background", "#f0f0f0")  // Light gray background for distinction
+    .style("padding", "20px")
+    .style("border-radius", "12px")
+    .style("border", "3px solid gray")  // Gray border to visually separate
+    .style("box-shadow", "0 0 10px rgba(0, 0, 0, 0.1)")
+    .style("max-width", "600px")
+    .style("margin", "40px auto") // Centered like animation section
+    .style("text-align", "center");
 
-// Define anesthesia drug names
-const drugNames = ["intraop_ppf", "intraop_mdz", "intraop_ftn", "intraop_rocu", "intraop_vecu"];
+// ** Add title for Blood Loss Prediction sliders **
+predictionSliderContainer.append("h2")
+    .text("Blood Loss Prediction Controls")
+    .style("color", "black")
+    .style("font-size", "20px")
+    .style("margin-bottom", "15px");
+
+// Define drug names with their full names
+const drugNames = [
+    { id: "intraop_ppf", name: "Propofol (PPF)" },
+    { id: "intraop_mdz", name: "Midazolam (MDZ)" },
+    { id: "intraop_ftn", name: "Fentanyl (FTN)" },
+    { id: "intraop_rocu", name: "Rocuronium (ROCU)" },
+    { id: "intraop_vecu", name: "Vecuronium (VECU)" }
+];
+
 const drugSliders = {};
 
-// Create slider container
-const sliderContainer = formContainer.append("div").attr("class", "slider-container");
-
-// Create sliders for each drug
+// Create sliders for Blood Loss Prediction
 drugNames.forEach(drug => {
-    const drugDiv = sliderContainer.append("div").attr("class", "slider-group");
+    const drugDiv = predictionSliderContainer.append("div")
+        .attr("class", "slider-group")
+        .style("display", "flex")
+        .style("align-items", "center")
+        .style("justify-content", "space-between")
+        .style("margin-bottom", "15px"); // Adds space between sliders
 
-    drugDiv.append("label").text(`${drug} (mg): `);
-    drugSliders[drug] = drugDiv.append("input")
+    drugDiv.append("label")
+        .text(`${drug.name}: `)  // Use actual drug name instead of variable name
+        .style("font-weight", "bold")
+        .style("color", "black");
+
+    drugSliders[drug.id] = drugDiv.append("input")
         .attr("type", "range")
         .attr("min", 0)
-        .attr("max", 100)  // Adjust based on drug dosage range
+        .attr("max", 100)
         .attr("step", 1)
-        .attr("value", 50);  // Default value
+        .attr("value", 50)
+        .style("width", "70%");
 });
 
 // Load data
@@ -52,8 +83,8 @@ function estimateBloodLoss() {
     };
 
     drugNames.forEach(drug => {
-        const drugDose = Number(drugSliders[drug].property("value"));
-        estimatedBloodLoss += drugDose * drugWeights[drug];  // Weighted impact on blood loss
+        const drugDose = Number(drugSliders[drug.id].property("value"));
+        estimatedBloodLoss += drugDose * drugWeights[drug.id];  // Weighted impact on blood loss
     });
 
     return estimatedBloodLoss;
@@ -160,14 +191,11 @@ function createBloodLossHistogram(parentDiv, data, estimatedBloodLoss) {
 function updateVisualization() {
     d3.select("#charts-container").remove();
 
-    // Compute estimated blood loss based on slider input
     const estimatedBloodLoss = estimateBloodLoss();
-
-    // Create new chart container
     const chartsContainer = d3.select("body").append("div").attr("id", "charts-container").attr("class", "chart-container");
 
-    // Generate the histogram with updated estimate
     createBloodLossHistogram(chartsContainer, window.data, estimatedBloodLoss);
+    updateAnimation(estimatedBloodLoss);
 }
 
 // Attach event listeners to all sliders
